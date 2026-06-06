@@ -10,13 +10,16 @@ const connection = process.env.REDIS_URL
     };
 
 // BullMQ connection options need maxRetriesPerRequest: null
-const bullConfig = { 
-  connection: process.env.REDIS_URL 
-    ? new IORedis(process.env.REDIS_URL, { maxRetriesPerRequest: null })
-    : { ...connection, maxRetriesPerRequest: null }
-};
+// We use 'any' to avoid type conflicts between our ioredis and BullMQ internal ioredis
+const redisConnection: any = process.env.REDIS_URL 
+  ? new IORedis(process.env.REDIS_URL, { maxRetriesPerRequest: null })
+  : {
+      host: process.env.REDIS_HOST || '127.0.0.1',
+      port: parseInt(process.env.REDIS_PORT || '6379'),
+      maxRetriesPerRequest: null
+    };
 
-export const salesQueue = new Queue('sales-queue', bullConfig);
+export const salesQueue = new Queue('sales-queue', { connection: redisConnection });
 
 // Worker logic to process sales
 export const salesWorker = new Worker(
@@ -71,14 +74,13 @@ export const salesWorker = new Worker(
 
     if (storageError) {
       console.error('Cloud Storage Error (Check if bucket exists):', storageError.message);
-      // We don't throw here to avoid failing the whole sale if storage is not configured in Supabase UI
     } else {
       console.log(`Receipt successfully stored in Cloud: ${receiptName}`);
     }
 
     return { success: true, newStock };
   },
-  bullConfig
+  { connection: redisConnection }
 );
 
 // [NEW] Transfer Worker
@@ -108,10 +110,10 @@ export const transferWorker = new Worker(
     console.log(`Transfer successful: ${quantity} units of ${product.nombre} moved to ${toSucursal}`);
     return { success: true };
   },
-  bullConfig
+  { connection: redisConnection }
 );
 
-export const transferQueue = new Queue('transfer-queue', bullConfig);
+export const transferQueue = new Queue('transfer-queue', { connection: redisConnection });
 
 salesWorker.on('completed', (job) => {
   console.log(`Job ${job.id} completed successfully`);
