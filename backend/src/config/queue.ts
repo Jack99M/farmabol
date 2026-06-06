@@ -72,6 +72,38 @@ export const salesWorker = new Worker(
   { connection }
 );
 
+// [NEW] Transfer Worker
+export const transferWorker = new Worker(
+  'transfer-queue', // We can use a different queue or same, but let's use a new one for clarity
+  async (job: Job) => {
+    const { productId, quantity, fromSucursal, toSucursal } = job.data;
+    console.log(`Processing transfer for product ${productId}: ${quantity} units from ${fromSucursal} to ${toSucursal}`);
+
+    // 1. Validate and Update stock (Source)
+    const { data: product, error: fetchError } = await supabase
+      .from('productos')
+      .select('stock, nombre')
+      .eq('id', productId)
+      .single();
+
+    if (fetchError || !product) throw new Error(`Product ${productId} not found`);
+    if (product.stock < quantity) throw new Error(`Insufficient stock for transfer of ${product.nombre}`);
+
+    const { error: updateError } = await supabase
+      .from('productos')
+      .update({ stock: product.stock - quantity })
+      .eq('id', productId);
+
+    if (updateError) throw new Error(`Failed to deduct stock for transfer`);
+
+    console.log(`Transfer successful: ${quantity} units of ${product.nombre} moved to ${toSucursal}`);
+    return { success: true };
+  },
+  { connection }
+);
+
+export const transferQueue = new Queue('transfer-queue', { connection });
+
 salesWorker.on('completed', (job) => {
   console.log(`Job ${job.id} completed successfully`);
 });

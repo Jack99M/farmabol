@@ -29,6 +29,7 @@ export interface Sale {
 export class ProductService {
   private apiUrl = 'http://localhost:4000/api/productos';
   private salesUrl = 'http://localhost:4000/api/ventas';
+  private transferUrl = 'http://localhost:4000/api/transferencias';
 
   constructor(private http: HttpClient) { }
 
@@ -42,5 +43,9 @@ export class ProductService {
 
   createSale(saleData: { productId: string; quantity: number; sucursalId: string }): Observable<any> {
     return this.http.post(this.salesUrl, saleData);
+  }
+
+  transferStock(transferData: { productId: string; quantity: number; fromSucursal: string; toSucursal: string }): Observable<any> {
+    return this.http.post(this.transferUrl, transferData);
   }
 }

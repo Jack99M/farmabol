@@ -3,6 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import productoRoutes from './routes/productos.routes';
 import ventaRoutes from './routes/ventas.routes';
+import transferenciaRoutes from './routes/transferencias.routes';
 import './config/queue';
 
 dotenv.config();
@@ -26,6 +27,7 @@ app.use(express.json());
 // Routes
 app.use('/api/productos', productoRoutes);
 app.use('/api/ventas', ventaRoutes);
+app.use('/api/transferencias', transferenciaRoutes);
 
 // Health Check (No DB)
 app.get('/health', (req: Request, res: Response) => {

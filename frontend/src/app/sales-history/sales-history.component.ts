@@ -11,6 +11,17 @@ import { ProductService, Sale } from '../product.service';
       <header class="header">
         <h1>📊 Historial de Ventas</h1>
       </header>
+
+      <div class="dashboard-summary">
+        <div class="summary-card">
+          <h3>Total Ventas</h3>
+          <p>{{ sales.length }}</p>
+        </div>
+        <div class="summary-card">
+          <h3>Productos Vendidos</h3>
+          <p>{{ totalItems }}</p>
+        </div>
+      </div>
       
       <div class="table-container">
         <table>
@@ -42,6 +53,7 @@ import { ProductService, Sale } from '../product.service';
 })
 export class SalesHistoryComponent implements OnInit {
   sales: Sale[] = [];
+  totalItems: number = 0;
 
   constructor(private productService: ProductService) {}
 
@@ -51,7 +63,10 @@ export class SalesHistoryComponent implements OnInit {
 
   loadSales() {
     this.productService.getSales().subscribe({
-      next: (data) => this.sales = data,
+      next: (data) => {
+        this.sales = data;
+        this.totalItems = this.sales.reduce((acc, s) => acc + s.cantidad, 0);
+      },
       error: (err) => console.error('Error loading sales', err)
     });
   }

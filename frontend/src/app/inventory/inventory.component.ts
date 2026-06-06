@@ -39,12 +39,18 @@ import { ProductService, Product } from '../product.service';
               <td>{{ p.fecha_vencimiento }}</td>
               <td>
                 <span *ngIf="p.stock < 10" class="badge badge-low">Stock Bajo</span>
-                <span *ngIf="p.stock >= 10" class="badge badge-ok">Normal</span>
+                <span *ngIf="isExpiringSoon(p.fecha_vencimiento)" class="badge badge-warning">Próximo a Vencer</span>
+                <span *ngIf="p.stock >= 10 && !isExpiringSoon(p.fecha_vencimiento)" class="badge badge-ok">Normal</span>
               </td>
               <td>
-                <button class="btn-sell" (click)="sellProduct(p)" [disabled]="p.stock <= 0">
-                  Vender
-                </button>
+                <div class="action-buttons">
+                  <button class="btn-sell" (click)="sellProduct(p)" [disabled]="p.stock <= 0">
+                    Vender
+                  </button>
+                  <button class="btn-transfer" (click)="transferProduct(p)" [disabled]="p.stock <= 0">
+                    Trasladar
+                  </button>
+                </div>
               </td>
             </tr>
             <tr *ngIf="products.length === 0">
@@ -89,5 +95,33 @@ export class InventoryComponent implements OnInit {
       },
       error: (err) => alert('Error al realizar venta: ' + err.message)
     });
+  }
+
+  transferProduct(product: Product): void {
+    if (!product.id) return;
+    
+    const toSucursal = prompt('Ingrese la sucursal de destino:', 'Sucursal Sur');
+    if (!toSucursal) return;
+
+    this.productService.transferStock({
+      productId: product.id,
+      quantity: 1,
+      fromSucursal: 'Sucursal Central',
+      toSucursal: toSucursal
+    }).subscribe({
+      next: () => {
+        alert('Transferencia encolada correctamente');
+        setTimeout(() => this.loadProducts(), 1000);
+      },
+      error: (err) => alert('Error en transferencia: ' + err.message)
+    });
+  }
+
+  isExpiringSoon(dateStr: string): boolean {
+    const expDate = new Date(dateStr);
+    const today = new Date();
+    const diffTime = expDate.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays > 0 && diffDays <= 30;
   }
 }
