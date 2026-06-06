@@ -35,5 +35,6 @@ import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
   `
 })
 export class App {
+  // Farmabol Management System v1.0.5 - Production Build
   title = 'Farmabol';
 }
