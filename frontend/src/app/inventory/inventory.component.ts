@@ -23,6 +23,7 @@ import { ProductService, Product } from '../product.service';
               <th>Stock</th>
               <th>Vencimiento</th>
               <th>Estado</th>
+              <th>Acción</th>
             </tr>
           </thead>
           <tbody>
@@ -39,6 +40,11 @@ import { ProductService, Product } from '../product.service';
               <td>
                 <span *ngIf="p.stock < 10" class="badge badge-low">Stock Bajo</span>
                 <span *ngIf="p.stock >= 10" class="badge badge-ok">Normal</span>
+              </td>
+              <td>
+                <button class="btn-sell" (click)="sellProduct(p)" [disabled]="p.stock <= 0">
+                  Vender
+                </button>
               </td>
             </tr>
             <tr *ngIf="products.length === 0">
@@ -65,6 +71,23 @@ export class InventoryComponent implements OnInit {
     this.productService.getProducts().subscribe({
       next: (data) => this.products = data,
       error: (err) => console.error('Error loading products', err)
+    });
+  }
+
+  sellProduct(product: Product): void {
+    if (!product.id) return;
+
+    this.productService.createSale({
+      productId: product.id,
+      quantity: 1,
+      sucursalId: 'sucursal-001'
+    }).subscribe({
+      next: () => {
+        console.log('Venta exitosa (Encolada)');
+        // Esperamos un momento a que el worker procese antes de recargar
+        setTimeout(() => this.loadProducts(), 1000);
+      },
+      error: (err) => alert('Error al realizar venta: ' + err.message)
     });
   }
 }
