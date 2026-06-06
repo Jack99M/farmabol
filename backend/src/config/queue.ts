@@ -1,13 +1,22 @@
 import { Queue, Worker, Job } from 'bullmq';
+import IORedis from 'ioredis';
 import { supabase } from './supabase';
 
-const connection = {
-  host: process.env.REDIS_HOST || '127.0.0.1',
-  port: parseInt(process.env.REDIS_PORT || '6379'),
-  maxRetriesPerRequest: null,
+const connection = process.env.REDIS_URL 
+  ? { url: process.env.REDIS_URL }
+  : {
+      host: process.env.REDIS_HOST || '127.0.0.1',
+      port: parseInt(process.env.REDIS_PORT || '6379'),
+    };
+
+// BullMQ connection options need maxRetriesPerRequest: null
+const bullConfig = { 
+  connection: process.env.REDIS_URL 
+    ? new IORedis(process.env.REDIS_URL, { maxRetriesPerRequest: null })
+    : { ...connection, maxRetriesPerRequest: null }
 };
 
-export const salesQueue = new Queue('sales-queue', { connection });
+export const salesQueue = new Queue('sales-queue', bullConfig);
 
 // Worker logic to process sales
 export const salesWorker = new Worker(
@@ -69,12 +78,12 @@ export const salesWorker = new Worker(
 
     return { success: true, newStock };
   },
-  { connection }
+  bullConfig
 );
 
 // [NEW] Transfer Worker
 export const transferWorker = new Worker(
-  'transfer-queue', // We can use a different queue or same, but let's use a new one for clarity
+  'transfer-queue', 
   async (job: Job) => {
     const { productId, quantity, fromSucursal, toSucursal } = job.data;
     console.log(`Processing transfer for product ${productId}: ${quantity} units from ${fromSucursal} to ${toSucursal}`);
@@ -99,10 +108,10 @@ export const transferWorker = new Worker(
     console.log(`Transfer successful: ${quantity} units of ${product.nombre} moved to ${toSucursal}`);
     return { success: true };
   },
-  { connection }
+  bullConfig
 );
 
-export const transferQueue = new Queue('transfer-queue', { connection });
+export const transferQueue = new Queue('transfer-queue', bullConfig);
 
 salesWorker.on('completed', (job) => {
   console.log(`Job ${job.id} completed successfully`);
