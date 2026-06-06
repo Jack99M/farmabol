@@ -30,7 +30,7 @@ export class ProductService {
   // Configuración dinámica para despliegue
   private baseUrl = window.location.hostname === 'localhost' 
     ? 'http://localhost:4000' 
-    : 'https://farmabol-backend.onrender.com'; // CAMBIAR ESTA URL después de desplegar en Render
+    : 'https://farmabol-cit0.onrender.com';
 
   private apiUrl = `${this.baseUrl}/api/productos`;
   private salesUrl = `${this.baseUrl}/api/ventas`;
