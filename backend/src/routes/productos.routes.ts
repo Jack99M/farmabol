@@ -26,17 +26,17 @@ router.get('/', async (req: Request, res: Response) => {
         
         console.log('Data successfully received. Row count:', data?.length);
         res.json(data);
-    } catch (err: any) {
+    } catch (err: unknown) {
+        const error = err as Error;
         console.error('CRITICAL CATCH ERROR:', {
-            name: err.name,
-            message: err.message,
-            cause: err.cause,
-            stack: err.stack
+            name: error.name,
+            message: error.message,
+            stack: error.stack
         });
         res.status(500).json({ 
             error: 'Internal Server Error', 
-            details: err.message,
-            type: err.name 
+            details: error.message,
+            type: error.name 
         });
     }
 });

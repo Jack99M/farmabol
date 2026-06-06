@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { HttpClient } from '@angular/common/http';
+import { ProductService, Sale } from '../product.service';
 
 @Component({
   selector: 'app-sales-history',
@@ -9,7 +9,7 @@ import { HttpClient } from '@angular/common/http';
   template: `
     <div class="app-container">
       <header class="header">
-        <h1>📊 Historial de Ventas (Draft)</h1>
+        <h1>📊 Historial de Ventas</h1>
       </header>
       
       <div class="table-container">
@@ -24,10 +24,15 @@ import { HttpClient } from '@angular/common/http';
           </thead>
           <tbody>
             <tr *ngFor="let s of sales">
-              <td>{{ s.id }}</td>
-              <td>{{ s.productos?.nombre || 'Cargando...' }}</td>
-              <td>{{ s.cantidad }}</td>
-              <td>{{ s.fecha | date:'short' }}</td>
+              <td class="code-cell">{{ s.id.substring(0,8) }}...</td>
+              <td><strong>{{ s.productos?.nombre || 'Producto' }}</strong></td>
+              <td>{{ s.cantidad }} unidades</td>
+              <td>{{ s.fecha | date:'medium' }}</td>
+            </tr>
+            <tr *ngIf="sales.length === 0">
+              <td colspan="4" style="text-align: center; padding: 40px; color: #64748b;">
+                No se han registrado ventas aún...
+              </td>
             </tr>
           </tbody>
         </table>
@@ -36,15 +41,18 @@ import { HttpClient } from '@angular/common/http';
   `
 })
 export class SalesHistoryComponent implements OnInit {
-  sales: any[] = [];
+  sales: Sale[] = [];
 
-  constructor(private http: HttpClient) {}
+  constructor(private productService: ProductService) {}
 
   ngOnInit() {
-    // SMELL: Hardcoded URL and direct HTTP call (should be in service)
-    this.http.get('http://localhost:4000/api/ventas').subscribe((data: any) => {
-      this.sales = data;
-      console.log('Sales loaded', this.sales);
+    this.loadSales();
+  }
+
+  loadSales() {
+    this.productService.getSales().subscribe({
+      next: (data) => this.sales = data,
+      error: (err) => console.error('Error loading sales', err)
     });
   }
 }
