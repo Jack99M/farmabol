@@ -16,9 +16,20 @@ app.use((req: Request, res: Response, next: NextFunction) => {
     next();
 });
 
-// Middlewares - FIXED CORS for Angular
+// Middlewares - FIXED CORS for Cloud Deployment
+const allowedOrigins = [
+    'http://localhost:4200',
+    process.env.FRONTEND_URL || '*'
+];
+
 app.use(cors({
-    origin: 'http://localhost:4200',
+    origin: (origin, callback) => {
+        if (!origin || allowedOrigins.includes(origin) || allowedOrigins.includes('*')) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization']
 }));

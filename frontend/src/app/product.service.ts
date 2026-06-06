@@ -27,9 +27,14 @@ export interface Sale {
   providedIn: 'root'
 })
 export class ProductService {
-  private apiUrl = 'http://localhost:4000/api/productos';
-  private salesUrl = 'http://localhost:4000/api/ventas';
-  private transferUrl = 'http://localhost:4000/api/transferencias';
+  // Configuración dinámica para despliegue
+  private baseUrl = window.location.hostname === 'localhost' 
+    ? 'http://localhost:4000' 
+    : 'https://farmabol-backend.onrender.com'; // CAMBIAR ESTA URL después de desplegar en Render
+
+  private apiUrl = `${this.baseUrl}/api/productos`;
+  private salesUrl = `${this.baseUrl}/api/ventas`;
+  private transferUrl = `${this.baseUrl}/api/transferencias`;
 
   constructor(private http: HttpClient) { }
 
