@@ -13,8 +13,12 @@ app.use((req: Request, res: Response, next: NextFunction) => {
     next();
 });
 
-// Middlewares
-app.use(cors());
+// Middlewares - FIXED CORS for Angular
+app.use(cors({
+    origin: 'http://localhost:4200',
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.use(express.json());
 
 // Routes
