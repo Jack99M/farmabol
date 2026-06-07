@@ -1,12 +1,13 @@
 import express, { Application, Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+
+dotenv.config();
+
 import productoRoutes from './routes/productos.routes';
 import ventaRoutes from './routes/ventas.routes';
 import transferenciaRoutes from './routes/transferencias.routes';
 import './config/queue';
-
-dotenv.config();
 
 const app: Application = express();
 

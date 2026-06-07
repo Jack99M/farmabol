@@ -6,7 +6,10 @@ dotenv.config();
 const supabaseUrl = process.env.SUPABASE_URL || '';
 const supabaseKey = process.env.SUPABASE_KEY || '';
 
-console.log('Supabase URL loaded:', supabaseUrl ? 'YES' : 'NO');
-console.log('Supabase Key loaded:', supabaseKey ? 'YES' : 'NO');
+if (!supabaseUrl || !supabaseKey) {
+    console.error('❌ CRITICAL: Supabase URL or Key is missing in environment variables!');
+} else {
+    console.log('✅ Supabase configuration detected');
+}
 
 export const supabase = createClient(supabaseUrl, supabaseKey);
