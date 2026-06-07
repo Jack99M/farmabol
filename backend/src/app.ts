@@ -19,14 +19,21 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 // Middlewares - FIXED CORS for Cloud Deployment
 const allowedOrigins = [
     'http://localhost:4200',
-    process.env.FRONTEND_URL || '*'
+    process.env.FRONTEND_URL?.replace(/\/$/, '') || '*'
 ];
 
 app.use(cors({
     origin: (origin, callback) => {
-        if (!origin || allowedOrigins.includes(origin) || allowedOrigins.includes('*')) {
+        // Allow requests with no origin (like mobile apps or curl)
+        if (!origin) return callback(null, true);
+        
+        const cleanOrigin = origin.replace(/\/$/, '');
+        const isAllowed = allowedOrigins.includes(cleanOrigin) || allowedOrigins.includes('*');
+
+        if (isAllowed) {
             callback(null, true);
         } else {
+            console.error(`CORS Blocked: Origin ${origin} not in`, allowedOrigins);
             callback(new Error('Not allowed by CORS'));
         }
     },
